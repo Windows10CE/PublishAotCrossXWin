@@ -1,28 +1,26 @@
 <Project Sdk="Microsoft.Build.NoTargets">
   <PropertyGroup>
-
     <TargetFramework>netstandard2.0</TargetFramework>
-
-    <PackageId>PublishAotCross</PackageId>
+    <PackageId>PublishAotCrossXWin</PackageId>
     <Version Condition="'$(Version)' == ''">42.42.42-dev</Version>
-    <Authors>Michal Strehovsky</Authors>
-    <Company>Michal Strehovsky</Company>
-    <Description>MSBuild targets to aid in crosscompiling Native AOT publishing.</Description>
-    <PackageProjectUrl>https://github.com/MichalStrehovsky/PublishAotCross</PackageProjectUrl>
+    <Authors>Aaron Robinson, Michal Strehovsky</Authors>
+    <Company>Aaron Robinson</Company>
+    <Description>MSBuild targets to aid in crosscompiling Native AOT publishing targeting Windows from Linux.</Description>
+    <PackageProjectUrl>https://github.com/Windows10CE/PublishAotCrossXWin</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="PublishAotCross.targets">
+    <None Include="PublishAotCrossXWin.targets">
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
     </None>
-    <None Include="Crosscompile.targets">
+    <None Include="CrosscompileXWin.targets">
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
     </None>
-    <None Include="clang.cmd">
+    <None Include="lld-link-wrapper.sh">
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
     </None>

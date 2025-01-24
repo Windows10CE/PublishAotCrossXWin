@@ -12,57 +12,58 @@ on:
 
 jobs:
   build_and_test:
-    strategy:
-      matrix:
-        include:
-          - vm: windows-latest
-    runs-on: ${{ matrix.vm }}
-    name: Build and test ${{ matrix.vm }}
+    runs-on: ubuntu-latest
+    name: Build and test
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Setup dotnet
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
           include-prerelease: true
-      - name: Setup zig
-        if: ${{ github.event.inputs.version == '' }}
-        uses: goto-bus-stop/setup-zig@v2
+      - name: Install lld-link
+        run: sudo apt-get install lld
+      - name: Install xwin
+        run: |
+          wget https://github.com/Jake-Shadle/xwin/releases/download/0.6.6-rc.2/xwin-0.6.6-rc.2-x86_64-unknown-linux-musl.tar.gz
+          tar -xf xwin-0.6.6-rc.2-x86_64-unknown-linux-musl.tar.gz
+          mkdir -p $HOME/.local/bin
+          cp xwin-0.6.6-rc.2-x86_64-unknown-linux-musl/xwin $HOME/.local/bin
       - name: Build (CI)
         if: ${{ github.event.inputs.version == '' }}
         run: |
-          dotnet build -t:Pack src/PublishAotCross.nuproj
-          dotnet publish -r linux-x64 -c Release test/Hello.csproj -p:StripSymbols=false
+          dotnet build -t:Pack src/PublishAotCrossXWin.nuproj
+          dotnet publish -r win-x64 -c Release test/Hello.csproj
       - name: Upload test binary
         if: ${{ github.event.inputs.version == '' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: Hello
-          path: test/bin/Release/net8.0/linux-x64/publish/Hello
+          path: test/bin/Release/net9.0/win-x64/publish/Hello.exe
       - name: Build (CD)
         if: ${{ github.event.inputs.version != '' }}
-        run: dotnet build -t:Pack src/PublishAotCross.nuproj -p:Version=${{ github.event.inputs.version }}
+        run: dotnet build -t:Pack src/PublishAotCrossXWin.nuproj -p:Version=${{ github.event.inputs.version }}
       - name: Archive NuGet
         if: ${{ github.event.inputs.version != '' }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: PublishAotCross.${{ github.event.inputs.version }}.nupkg
-          path: src/bin/Debug/PublishAotCross.${{ github.event.inputs.version }}.nupkg
+          name: PublishAotCrossXWin.${{ github.event.inputs.version }}.nupkg
+          path: src/bin/Debug/PublishAotCrossXWin.${{ github.event.inputs.version }}.nupkg
       - name: Create tag
-        if: ${{ github.event.inputs.version != '' && github.actor == 'MichalStrehovsky' }}
+        if: ${{ github.event.inputs.version != '' && github.actor == 'Windows10CE' }}
         run: |
           git tag v${{ github.event.inputs.version }}
           git push origin v${{ github.event.inputs.version }}
 
   validate:
     needs: build_and_test
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     name: Try launching
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v3
+      - name: Download test binary
+        uses: actions/download-artifact@v4
+        with:
+          name: Hello
       - name: Launch
-        run: |
-          chmod +x ./Hello/Hello
-          ./Hello/Hello
+        run: ./Hello.exe

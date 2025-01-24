@@ -1,0 +1,41 @@
+<Project>
+  <PropertyGroup>
+    <DisableUnsupportedError>true</DisableUnsupportedError>
+  </PropertyGroup>
+
+  <Target Name="PrepareForXWinCrossCompile"
+          AfterTargets="SetupOSSpecificProps"
+          BeforeTargets="LinkNative">
+    <Error Condition="'$(AcceptVSBuildToolsLicense)' != 'true'" Text="Please set AcceptVSBuildToolsLicense to 'true' to accept the VS build tools license: https://go.microsoft.com/fwlink/?LinkId=2086102" />
+
+    <PropertyGroup>
+      <CrossCompileRid />
+      <CrossCompileRid>$(RuntimeIdentifier)</CrossCompileRid>
+
+      <CrossCompileArch />
+      <CrossCompileArch Condition="$(CrossCompileRid.EndsWith('-x64'))">x64</CrossCompileArch>
+      <CrossCompileArch Condition="$(CrossCompileRid.EndsWith('-x86'))">x86</CrossCompileArch>
+      <CrossCompileArch Condition="$(CrossCompileRid.EndsWith('-arm64'))">arm64</CrossCompileArch>
+      <CrossCompileArch Condition="$(CrossCompileRid.EndsWith('-arm'))">arm</CrossCompileArch>
+      
+      <XwinArches Condition="'$(XwinArches)' == ''">x86_64,aarch64</XwinArches>
+      
+      <CppLinker>$(MSBuildThisFileDirectory)lld-link-wrapper.sh</CppLinker>
+    </PropertyGroup>
+
+    <Message Condition="!Exists('$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)')" Importance="high" Text="The xwin cache does not yet exist, building this may take a while..." />
+    <Exec Condition="!Exists('$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)')" ContinueOnError="false" ConsoleToMsBuild="true" Command="xwin --accept-license --cache-dir &quot;$(MSBuildThisFileDirectory).xwin-cache&quot; --arch $(XwinArches) --sdk-version 10.0.22621 splat --preserve-ms-arch-notation --include-debug-symbols" />
+    
+    <ItemGroup Condition="'$(OutputType)' == 'WinExe' or '$(OutputType)' == 'Exe' or '$(NativeLib)' == ''">
+      <_NoExpLinkerArg Include="@(LinkerArg)" Condition="$([System.String]::Copy(%(Identity)).Contains('/NOEXP'))">
+        <WithoutNoExp>$([System.String]::Copy(%(Identity)).Replace('/NOEXP', ''))</WithoutNoExp>
+      </_NoExpLinkerArg>
+      <LinkerArg Remove="@(_NoExpLinkerArg)" />
+      <LinkerArg Include="@(_NoExpLinkerArg->'%(WithoutNoExp)')" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <LinkerArg Include="/LIBPATH:$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)/" />
+    </ItemGroup>
+  </Target>
+</Project>

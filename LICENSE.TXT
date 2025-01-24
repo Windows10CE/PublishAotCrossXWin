@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) Michal Strehovsky
+Copyright (c) Aaron Robinson, Michal Strehovsky
 
 All rights reserved.
 
