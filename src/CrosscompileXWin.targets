@@ -1,0 +1,35 @@
+<Project>
+  <PropertyGroup>
+    <DisableUnsupportedError>true</DisableUnsupportedError>
+  </PropertyGroup>
+
+  <Target Name="PrepareForXWinCrossCompile"
+          AfterTargets="SetupOSSpecificProps"
+          BeforeTargets="LinkNative">
+    <Error Condition="'$(AcceptVSBuildToolsLicense)' != 'true'" Text="Please set AcceptVSBuildToolsLicense to 'true' to accept the VS build tools license: https://go.microsoft.com/fwlink/?LinkId=2086102" />
+
+    <PropertyGroup>
+      <CrossCompileRid />
+      <CrossCompileRid>$(RuntimeIdentifier)</CrossCompileRid>
+
+      <CrossCompileArch />
+      <CrossCompileArch Condition="$(CrossCompileRid.EndsWith('-x64'))">x64</CrossCompileArch>
+      <CrossCompileArch Condition="$(CrossCompileRid.EndsWith('-arm64'))">arm64</CrossCompileArch>
+      
+      <XwinArches Condition="'$(XwinArches)' == ''">x86_64,aarch64</XwinArches>
+      
+      <CppLinker>$(MSBuildThisFileDirectory)lld-link-wrapper.sh</CppLinker>
+    </PropertyGroup>
+
+    <Exec Condition="'$(AcceptVSBuildToolsLicense)' == 'true' And !Exists('$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)')" ContinueOnError="false" ConsoleToMsBuild="true" Command="xwin --accept-license --cache-dir &quot;$(MSBuildThisFileDirectory).xwin-cache&quot; --arch $(XwinArches) --sdk-version 10.0.22621 splat --preserve-ms-arch-notation --include-debug-symbols" />
+    
+    <ItemGroup Condition="'$(OutputType)' == 'WinExe' or '$(OutputType)' == 'Exe'">
+      <LinkerArg Remove="/ENTRY:$(EntryPointSymbol) /NOEXP /NOIMPLIB" />
+      <LinkerArg Include="/ENTRY:$(EntryPointSymbol) /NOIMPLIB" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <LinkerArg Include="/LIBPATH:$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)/" />
+    </ItemGroup>
+  </Target>
+</Project>

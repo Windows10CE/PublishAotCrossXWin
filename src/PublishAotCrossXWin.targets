@@ -1,0 +1,6 @@
+<Project>
+
+  <!-- Only Windows host targeting Linux is currently supported -->
+  <Import Project="CrosscompileXWin.targets" Condition="$(RuntimeIdentifier.Contains('win')) and $([MSBuild]::IsOSPlatform('Linux'))" />
+
+</Project>
