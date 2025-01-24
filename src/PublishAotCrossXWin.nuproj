@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.Build.NoTargets">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-
     <PackageId>PublishAotCrossXWin</PackageId>
     <Version Condition="'$(Version)' == ''">42.42.42-dev</Version>
     <Authors>Aaron Robinson, Michal Strehovsky</Authors>

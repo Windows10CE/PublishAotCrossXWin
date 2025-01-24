@@ -21,11 +21,14 @@
       <CppLinker>$(MSBuildThisFileDirectory)lld-link-wrapper.sh</CppLinker>
     </PropertyGroup>
 
-    <Exec Condition="'$(AcceptVSBuildToolsLicense)' == 'true' And !Exists('$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)')" ContinueOnError="false" ConsoleToMsBuild="true" Command="xwin --accept-license --cache-dir &quot;$(MSBuildThisFileDirectory).xwin-cache&quot; --arch $(XwinArches) --sdk-version 10.0.22621 splat --preserve-ms-arch-notation --include-debug-symbols" />
+    <Exec Condition="!Exists('$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)')" ContinueOnError="false" ConsoleToMsBuild="true" Command="xwin --accept-license --cache-dir &quot;$(MSBuildThisFileDirectory).xwin-cache&quot; --arch $(XwinArches) --sdk-version 10.0.22621 splat --preserve-ms-arch-notation --include-debug-symbols" />
     
-    <ItemGroup Condition="'$(OutputType)' == 'WinExe' or '$(OutputType)' == 'Exe'">
-      <LinkerArg Remove="/ENTRY:$(EntryPointSymbol) /NOEXP /NOIMPLIB" />
-      <LinkerArg Include="/ENTRY:$(EntryPointSymbol) /NOIMPLIB" />
+    <ItemGroup Condition="'$(OutputType)' == 'WinExe' or '$(OutputType)' == 'Exe' or '$(NativeLib)' == ''">
+      <_NoExpLinkerArg Include="@(LinkerArg)" Condition="$([System.String]::Copy(%(Identity)).Contains('/NOEXP'))">
+        <WithoutNoExp>$([System.String]::Copy(%(Identity)).Replace('/NOEXP', ''))</WithoutNoExp>
+      </_NoExpLinkerArg>
+      <LinkerArg Remove="@(_NoExpLinkerArg)" />
+      <LinkerArg Include="@(_NoExpLinkerArg->'%(WithoutNoExp)')" />
     </ItemGroup>
 
     <ItemGroup>

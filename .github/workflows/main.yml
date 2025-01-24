@@ -12,19 +12,15 @@ on:
 
 jobs:
   build_and_test:
-    strategy:
-      matrix:
-        include:
-          - vm: ubuntu-latest
-    runs-on: ${{ matrix.vm }}
-    name: Build and test ${{ matrix.vm }}
+    runs-on: ubuntu-latest
+    name: Build and test
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
       - name: Setup dotnet
         uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
           include-prerelease: true
       - name: Install lld-link
         run: sudo apt-get install lld
@@ -44,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Hello
-          path: test/bin/Release/net8.0/win-x64/publish/Hello.exe
+          path: test/bin/Release/net9.0/win-x64/publish/Hello.exe
       - name: Build (CD)
         if: ${{ github.event.inputs.version != '' }}
         run: dotnet build -t:Pack src/PublishAotCrossXWin.nuproj -p:Version=${{ github.event.inputs.version }}
@@ -65,7 +61,9 @@ jobs:
     runs-on: windows-latest
     name: Try launching
     steps:
-      - name: Download all artifacts
+      - name: Download test binary
         uses: actions/download-artifact@v4
+        with:
+          name: Hello
       - name: Launch
-        run: ./Hello/Hello.exe
+        run: ./Hello.exe
