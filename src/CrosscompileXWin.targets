@@ -20,22 +20,21 @@
       
       <XwinArches Condition="'$(XwinArches)' == ''">x86_64,aarch64</XwinArches>
       
-      <CppLinker>$(MSBuildThisFileDirectory)lld-link-wrapper.sh</CppLinker>
+      <CppLinker>lld-link</CppLinker>
     </PropertyGroup>
 
     <Message Condition="!Exists('$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)')" Importance="high" Text="The xwin cache does not yet exist, building this may take a while..." />
     <Exec Condition="!Exists('$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)')" ContinueOnError="false" ConsoleToMsBuild="true" Command="xwin --accept-license --cache-dir &quot;$(MSBuildThisFileDirectory).xwin-cache&quot; --arch $(XwinArches) --sdk-version 10.0.22621 splat --preserve-ms-arch-notation --include-debug-symbols" />
-    
-    <ItemGroup Condition="'$(OutputType)' == 'WinExe' or '$(OutputType)' == 'Exe' or '$(NativeLib)' == ''">
-      <_NoExpLinkerArg Include="@(LinkerArg)" Condition="$([System.String]::Copy(%(Identity)).Contains('/NOEXP'))">
-        <WithoutNoExp>$([System.String]::Copy(%(Identity)).Replace('/NOEXP', ''))</WithoutNoExp>
-      </_NoExpLinkerArg>
-      <LinkerArg Remove="@(_NoExpLinkerArg)" />
-      <LinkerArg Include="@(_NoExpLinkerArg->'%(WithoutNoExp)')" />
-    </ItemGroup>
 
     <ItemGroup>
+      <_NoExpLinkerArg Include="@(LinkerArg->Replace('/NOEXP', ''))" />
+      <LinkerArg Remove="@(LinkerArg)" />
+
+      <LinkerArg Include="/vctoolsdir:$(MSBuildThisFileDirectory).xwin-cache/splat/crt" />
+      <LinkerArg Include="/winsdkdir:$(MSBuildThisFileDirectory).xwin-cache/splat/sdk" />
       <LinkerArg Include="/LIBPATH:$(MSBuildThisFileDirectory).xwin-cache/splat/sdk/lib/ucrt/$(CrossCompileArch)/" />
+
+      <LinkerArg Include="@(_NoExpLinkerArg)" />
     </ItemGroup>
   </Target>
 </Project>
