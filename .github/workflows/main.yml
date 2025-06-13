@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Hello
-          path: test/bin/Release/net9.0/win-x64/publish/Hello.exe
+          path: test/bin/Release/net10.0/win-x64/publish/Hello.exe
       - name: Archive NuGet
         if: ${{ github.event.inputs.version != '' }}
         uses: actions/upload-artifact@v4
