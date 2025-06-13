@@ -9,7 +9,6 @@
     <Error Condition="'$(AcceptVSBuildToolsLicense)' != 'true'" Text="Please set AcceptVSBuildToolsLicense to 'true' to accept the VS build tools license: https://go.microsoft.com/fwlink/?LinkId=2086102" />
 
     <PropertyGroup>
-      <CrossCompileRid />
       <CrossCompileRid>$(RuntimeIdentifier)</CrossCompileRid>
 
       <CrossCompileArch />
@@ -28,6 +27,7 @@
 
     <ItemGroup>
       <_NoExpLinkerArg Include="@(LinkerArg->Replace('/NOEXP', ''))" />
+      <_NoExpLinkerArg Remove="@(_NoExpLinkerArg)" Condition="$([System.String]::new('%(Identity)').StartsWith('/SOURCELINK:'))" />
       <LinkerArg Remove="@(LinkerArg)" />
 
       <LinkerArg Include="/vctoolsdir:$(MSBuildThisFileDirectory).xwin-cache/splat/crt" />
