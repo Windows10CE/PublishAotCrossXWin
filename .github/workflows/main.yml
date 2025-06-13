@@ -32,18 +32,17 @@ jobs:
           cp xwin-0.6.6-rc.2-x86_64-unknown-linux-musl/xwin $HOME/.local/bin
       - name: Build (CI)
         if: ${{ github.event.inputs.version == '' }}
-        run: |
-          dotnet build -t:Pack src/PublishAotCrossXWin.nuproj
-          dotnet publish -r win-x64 -c Release test/Hello.csproj
+        run: dotnet build -t:Pack src/PublishAotCrossXWin.nuproj
+      - name: Build (CD)
+        if: ${{ github.event.inputs.version != '' }}
+        run: dotnet build -t:Pack src/PublishAotCrossXWin.nuproj -p:Version=${{ github.event.inputs.version }}
+      - name: Build test binary
+        run: dotnet publish -r win-x64 -c Release test/Hello.csproj
       - name: Upload test binary
-        if: ${{ github.event.inputs.version == '' }}
         uses: actions/upload-artifact@v4
         with:
           name: Hello
           path: test/bin/Release/net9.0/win-x64/publish/Hello.exe
-      - name: Build (CD)
-        if: ${{ github.event.inputs.version != '' }}
-        run: dotnet build -t:Pack src/PublishAotCrossXWin.nuproj -p:Version=${{ github.event.inputs.version }}
       - name: Archive NuGet
         if: ${{ github.event.inputs.version != '' }}
         uses: actions/upload-artifact@v4
